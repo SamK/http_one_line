@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+License:
+----
+2015 Samuel Krieg <samuel.krieg+github@gmail.com>
+
+This work is free. You can redistribute it and/or modify it under the
+terms of the Do What The Fuck You Want To Public License, Version 2,
+as published by Sam Hocevar. See http://www.wtfpl.net/ for more details.
+
+License addendum:
+----
+You are encouraged to send a nice email to the author.
+
+http_one_line:
+----
+Create a web server serving a page
+Open the README.md for examples
+"""
+import argparse
+import sys
+import cherrypy
+
+__version__ = '0.0.1'
+__author__ = 'Samuel Krieg'
+__author_email__ = 'samuel.krieg+github@gmail.com'
+__license__ = 'WTFPL'
+
+
+class Root(object):
+
+    def __init__(self, config):
+        cherrypy.log("init")
+        self.config = config
+        cherrypy.log(str(self.config))
+        self.message = None
+        # Determine the message if existing
+        if self.config['message']:
+            self.message = self.config['message']
+        cherrypy.log('Using message: {}'.format(self.message))
+
+    @cherrypy.expose
+    def default(self, *args):
+        cherrypy.response.status = self.config['code']
+
+        if self.message is not None:
+            return self.message
+        # No message set. Open the index file
+        with open(self.config['index'], 'r') as content_file:
+            content = content_file.read()
+        return content
+
+
+def execute(config):
+    cherrypy.log("Execution..")
+    cherrypy.config.update({'server.socket_port': config['listen']})
+    cherrypy.config.update({'server.socket_host': config['interface']})
+    cherrypy.quickstart(Root(config), '/')
+
+
+def define_the_message(message):
+    if isinstance(message, file):
+        print 'Type your message and hit CTRL+D to launch the server:'
+        return message.read()
+    return message
+
+
+def parse_arguments(default_values):
+
+    global __author__
+    global __version__
+
+    version_string = "%(prog)s-%(version)s by %(author)s" % \
+            {"prog": "%(prog)s", "version": __version__, "author": __author__}
+
+    parser = argparse.ArgumentParser(description="Simple maintenance web server")
+    parser.add_argument('-V', '--version', action='version',
+                        help="shows program version", version=version_string)
+    parser.add_argument('-l', '--listen', default=default_values['listen'], type=int,
+                        help='Port to listen to. Default:  %(default)s')
+    parser.add_argument('-c', '--code', default=default_values['code'],
+                        help='The HTTP response code to return. Default: %(default)s')
+    parser.add_argument('-I', '--interface', nargs='*', default=default_values['interface'],
+                        help='The network interface to bind the application to. Default: %(default)s.')
+    parser.add_argument('-m', '--message', nargs='?',
+                        default=default_values['message'],
+                        help='The message to display on the browser. Default: stdin.')
+    arguments = parser.parse_args()
+
+    message = define_the_message(arguments.message)
+    arguments.message = message
+
+    return arguments
+
+
+def main(default_values):
+    arguments = parse_arguments(default_values)
+    execute(vars(arguments))
+
+if __name__ == '__main__':
+    default_values = {}
+    default_values['code'] = '200'
+    default_values['message'] = sys.stdin
+    default_values['listen'] = 80
+    default_values['interface'] = '0.0.0.0'
+    main(default_values)
