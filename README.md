@@ -20,8 +20,10 @@ The latest stable release can be found here: https://github.com/SamK/http_one_li
 
 1. Type the following commands:
 
-    python setup.py build
-    sudo python setup.py install
+```
+python setup.py build
+sudo python setup.py install
+```
 
 2. Test that the program has been installed by typing `http_one_line --help`
 
