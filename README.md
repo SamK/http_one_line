@@ -10,7 +10,7 @@ You can also use this program as a simple page website.
 ### Prerequisites
 
 * Python
-* CherryPy version 3. Available on Debian and Ubuntu by installing the `python-cherrypy3` package
+* CherryPy version 3 (available on Debian and Ubuntu by installing the `python-cherrypy3` package)
 
 ### Download
 
